@@ -170,19 +170,25 @@ async def analyze_reference_video(request: AnalyzeReferenceRequest):
     This is a background task that can take 30-60 seconds
     """
     try:
-        # TODO: Queue as Celery task
-        reference_id = str(uuid.uuid4())
+        from app.services.youtube_service import get_youtube_service
 
-        # For now, return mock response
+        reference_id = str(uuid.uuid4())
+        youtube_service = get_youtube_service()
+
+        # Get video info without downloading
+        video_info = youtube_service.get_video_info(request.video_url)
+
+        logger.info(f"✅ Analyzed reference: {video_info['title']}")
+
         return AnalyzeReferenceResponse(
             reference_id=reference_id,
-            num_dancers=5,
-            duration_seconds=180.5,
-            fps=30,
+            num_dancers=1,  # TODO: Implement multi-person detection
+            duration_seconds=video_info['duration'],
+            fps=video_info['fps'],
             has_audio=True,
-            has_vocals=True,
-            has_face_data=True,
-            preview_url=f"/api/v1/videos/{reference_id}/preview"
+            has_vocals=True,  # Assume yes for YouTube videos
+            has_face_data=True,  # Will be extracted during generation
+            preview_url=video_info.get('thumbnail')
         )
 
     except Exception as e:
@@ -201,16 +207,41 @@ async def upload_photo(file: UploadFile = File(...)):
         - Preview with bounding boxes
     """
     try:
-        # TODO: Save to MinIO
-        # TODO: Detect persons with YOLO
-        # TODO: Detect faces
+        from app.services.minio_client import get_minio_client
+        from io import BytesIO
 
+        # Generate unique ID
         photo_id = str(uuid.uuid4())
-        photo_url = f"minio://dance-photos/{photo_id}.jpg"
+        file_extension = file.filename.split('.')[-1] if '.' in file.filename else 'jpg'
+        object_name = f"{photo_id}.{file_extension}"
+
+        # Read file content
+        file_content = await file.read()
+
+        # Save to MinIO
+        minio_client = get_minio_client()
+        bucket_name = "dance-photos"
+
+        # Ensure bucket exists
+        if not minio_client.client.bucket_exists(bucket_name):
+            minio_client.client.make_bucket(bucket_name)
+
+        # Upload to MinIO
+        minio_client.client.put_object(
+            bucket_name,
+            object_name,
+            BytesIO(file_content),
+            length=len(file_content),
+            content_type=file.content_type or "image/jpeg"
+        )
+
+        photo_url = f"minio://{bucket_name}/{object_name}"
+
+        logger.info(f"✅ Photo uploaded: {photo_url}")
 
         return {
             "photo_url": photo_url,
-            "detected_persons": 3,
+            "detected_persons": 1,  # TODO: Implement person detection
             "preview_url": f"/api/v1/photos/{photo_id}/preview"
         }
 
@@ -240,19 +271,25 @@ async def generate_dance_video(
     Returns immediately with job_id for progress tracking
     """
     try:
+        from app.tasks.dance_generation_task import generate_dance_video_task
+
         project_id = str(uuid.uuid4())
         job_id = str(uuid.uuid4())
 
-        # TODO: Create project in database
-        # TODO: Queue Celery task
+        logger.info(f"🎬 Starting generation for project {project_id}")
+        logger.info(f"   Photo: {request.photo_url}")
+        logger.info(f"   Reference: {request.reference_video_url}")
+        logger.info(f"   Scene prompt: {request.scene_prompt}")
+        logger.info(f"   Style prompt: {request.style_prompt}")
+        logger.info(f"   Background mode: {request.background_mode}")
 
-        logger.info(f"Starting generation for project {project_id}")
-        logger.info(f"Scene prompt: {request.scene_prompt}")
-        logger.info(f"Style prompt: {request.style_prompt}")
-        logger.info(f"Background mode: {request.background_mode}")
+        # Queue Celery task
+        task = generate_dance_video_task.apply_async(
+            args=[project_id, request.dict()],
+            task_id=job_id
+        )
 
-        # Queue background task
-        # background_tasks.add_task(generate_video_task, project_id, request.dict())
+        logger.info(f"✅ Queued task {job_id}")
 
         return GenerateDanceResponse(
             project_id=project_id,
@@ -279,35 +316,73 @@ async def get_job_status(job_id: str):
     };
     ```
     """
+    from app.celery_app import celery_app
+    from celery.result import AsyncResult
+
     async def event_generator():
         """Generate SSE events for job progress"""
-        # TODO: Get job from database/Redis
+        task = AsyncResult(job_id, app=celery_app)
 
-        # Mock progress
-        for progress in range(0, 101, 10):
-            await asyncio.sleep(2)
+        last_progress = -1
 
-            status_data = {
-                "job_id": job_id,
-                "status": "processing" if progress < 100 else "completed",
-                "progress": progress,
-                "current_step": f"Step {progress // 10}/10",
-                "logs": [f"Processing... {progress}%"],
-                "estimated_time_remaining": (100 - progress) * 2
-            }
+        while True:
+            # Get task state
+            state = task.state
+            info = task.info if task.info else {}
 
-            yield {
-                "event": "progress",
-                "data": status_data
-            }
+            # Extract progress info
+            if state == 'PENDING':
+                progress = 0
+                current_step = "Queued"
+                logs = ["Task is queued..."]
+            elif state == 'PROGRESS':
+                progress = info.get('progress', 0)
+                current_step = info.get('step', 'Processing')
+                logs = info.get('logs', [])
+            elif state == 'SUCCESS':
+                progress = 100
+                current_step = "Complete"
+                logs = ["Video generation complete!"]
+            elif state == 'FAILURE':
+                progress = 0
+                current_step = "Failed"
+                logs = [f"Error: {str(task.info)}"]
+            else:
+                progress = 0
+                current_step = state
+                logs = []
 
-            if progress >= 100:
-                status_data["final_video_url"] = "/api/v1/videos/mock-video.mp4"
+            # Only send update if progress changed
+            if progress != last_progress or state in ['SUCCESS', 'FAILURE']:
+                status_data = {
+                    "job_id": job_id,
+                    "project_id": job_id,  # Using job_id as project_id for simplicity
+                    "status": state.lower(),
+                    "progress": progress,
+                    "current_step": current_step,
+                    "logs": logs,
+                }
+
+                # Add final video URL if complete
+                if state == 'SUCCESS' and task.result:
+                    final_video_url = task.result.get('final_video_url')
+                    if final_video_url:
+                        # Convert MinIO URL to download endpoint
+                        video_filename = final_video_url.split('/')[-1]
+                        status_data["final_video_url"] = f"/api/v1/dance/video/{job_id}"
+
                 yield {
-                    "event": "complete",
+                    "event": "progress" if state == 'PROGRESS' else state.lower(),
                     "data": status_data
                 }
-                break
+
+                last_progress = progress
+
+                # Exit if done
+                if state in ['SUCCESS', 'FAILURE']:
+                    break
+
+            await asyncio.sleep(1)  # Check every second
 
     return EventSourceResponse(event_generator())
 
@@ -315,21 +390,40 @@ async def get_job_status(job_id: str):
 @app.get("/api/v1/dance/video/{project_id}")
 async def download_video(project_id: str):
     """
-    Get signed URL for final video download
+    Get final video for download
     """
     try:
-        # TODO: Get project from database
-        # TODO: Generate MinIO signed URL
+        from fastapi.responses import FileResponse
+        from app.services.minio_client import get_minio_client
+        import os
 
-        return {
-            "video_url": f"https://minio.example.com/dance-videos/{project_id}.mp4?signed=...",
-            "expires_in": 3600,
-            "thumbnail_url": f"/api/v1/videos/{project_id}/thumbnail.jpg"
-        }
+        minio_client = get_minio_client()
+
+        # Try to find the video in MinIO
+        object_name = f"{project_id}_final.mp4"
+
+        # Download from MinIO to temp file
+        temp_path = f"/tmp/{project_id}.mp4"
+        try:
+            minio_client.client.fget_object(
+                "dance-videos",
+                object_name,
+                temp_path
+            )
+
+            return FileResponse(
+                temp_path,
+                media_type="video/mp4",
+                filename=f"dance_{project_id}.mp4"
+            )
+
+        except Exception as e:
+            logger.error(f"Video not found in MinIO: {e}")
+            raise HTTPException(status_code=404, detail="Video not found")
 
     except Exception as e:
         logger.error(f"Error getting video: {e}")
-        raise HTTPException(status_code=404, detail="Video not found")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/api/v1/style-presets", response_model=List[StylePresetResponse])

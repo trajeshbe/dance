@@ -112,7 +112,7 @@ class Settings(BaseSettings):
     PREFER_COLAB: bool = True
 
     # CORS
-    CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:3001"]
+    CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"]
 
     class Config:
         env_file = ".env"

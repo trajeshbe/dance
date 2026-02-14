@@ -124,186 +124,67 @@ def generate_dance_video_task(
         )
 
         # ================================================================
-        # STEP 1: Process reference video
+        # USE REAL PIPELINE
         # ================================================================
-        self.update_state(
-            state='PROGRESS',
-            meta={
-                'step': 'Processing reference video',
-                'progress': 10,
-                'logs': ['Downloading reference video from YouTube...']
-            }
-        )
+        from app.services.dance_generation_pipeline import get_dance_generation_pipeline
+        import os
 
-        # TODO: Implement reference video processing
-        # - Download from YouTube (yt-dlp)
-        # - Detect dancers (YOLO)
-        # - Extract poses (OpenPose)
-        # - Extract facial expressions (FOMM/MediaPipe)
-        # - Extract audio (FFmpeg)
+        pipeline = get_dance_generation_pipeline()
 
-        time.sleep(5)  # Mock processing
+        # Set up output path
+        output_path = f"/tmp/dance_generation/{project_id}_final.mp4"
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-        # ================================================================
-        # STEP 2: Process input photo
-        # ================================================================
-        self.update_state(
-            state='PROGRESS',
-            meta={
-                'step': 'Processing input photo',
-                'progress': 20,
-                'logs': ['Detecting persons in photo...']
-            }
-        )
-
-        # TODO: Implement photo processing
-        # - Detect persons (YOLO)
-        # - Segment persons (SAM)
-        # - Detect faces (MediaPipe)
-        # - Extract face landmarks
-
-        time.sleep(3)  # Mock processing
-
-        # ================================================================
-        # STEP 3: Map choreography
-        # ================================================================
-        self.update_state(
-            state='PROGRESS',
-            meta={
-                'step': 'Mapping choreography',
-                'progress': 30,
-                'logs': ['Mapping dancers to persons...']
-            }
-        )
-
-        # TODO: Implement choreography mapping
-        # Based on strategy: all_sync, n_to_n, etc.
-
-        time.sleep(2)  # Mock processing
-
-        # ================================================================
-        # STEP 4: Generate body motion
-        # ================================================================
-        self.update_state(
-            state='PROGRESS',
-            meta={
-                'step': 'Generating body motion with AnimateDiff',
-                'progress': 40,
-                'logs': [
-                    'Loading AnimateDiff model...',
-                    f'Scene prompt: {config.get("scene_prompt", "none")}'
-                ]
-            }
-        )
-
-        # TODO: Implement body motion generation
-        # - Use AnimateDiff + ControlNet with pose
-        # - Apply scene and style prompts
-        # - Generate for each person
-
-        time.sleep(10)  # Mock processing
-
-        # ================================================================
-        # STEP 5: Generate facial expressions
-        # ================================================================
-        self.update_state(
-            state='PROGRESS',
-            meta={
-                'step': 'Generating facial expressions with FOMM',
-                'progress': 60,
-                'logs': ['Transferring facial expressions...']
-            }
-        )
-
-        # TODO: Implement facial expression generation
-        # - Use FOMM or LivePortrait
-        # - Transfer expressions from reference
-        # - Apply intensity settings
-
-        time.sleep(8)  # Mock processing
-
-        # ================================================================
-        # STEP 6: Composite face onto body
-        # ================================================================
-        self.update_state(
-            state='PROGRESS',
-            meta={
-                'step': 'Compositing face onto body',
-                'progress': 75,
-                'logs': ['Blending facial expressions with body motion...']
-            }
-        )
-
-        # TODO: Implement face compositing
-        # - Align face video with body video
-        # - Blend seamlessly
-        # - Preserve head movements
-
-        time.sleep(5)  # Mock processing
-
-        # ================================================================
-        # STEP 7: Generate/composite background (if requested)
-        # ================================================================
-        if config.get('background_mode') == 'generated':
+        # Progress callback
+        def progress_callback(step: str, progress: int):
             self.update_state(
                 state='PROGRESS',
                 meta={
-                    'step': 'Generating AI background',
-                    'progress': 85,
-                    'logs': [
-                        'Generating background from prompt...',
-                        f'Scene: {config.get("scene_prompt")}'
-                    ]
+                    'step': step,
+                    'progress': progress,
+                    'logs': [step]
                 }
             )
 
-            # TODO: Implement background generation
-            # - Use Stable Video Diffusion or static SDXL
-            # - Composite person onto background
-
-            time.sleep(7)  # Mock processing
-
-        # ================================================================
-        # STEP 8: Final composition with audio
-        # ================================================================
-        self.update_state(
-            state='PROGRESS',
-            meta={
-                'step': 'Final rendering with audio',
-                'progress': 95,
-                'logs': ['Adding audio and rendering final video...']
-            }
+        # Run pipeline
+        result = asyncio.run(
+            pipeline.generate_dance_video(
+                photo_url=config['photo_url'],
+                reference_video_url=config['reference_video_url'],
+                output_path=output_path,
+                scene_prompt=config.get('scene_prompt'),
+                style_prompt=config.get('style_prompt', 'cinematic, 4k, dramatic lighting'),
+                background_mode=config.get('background_mode', 'original'),
+                enable_facial_expressions=config.get('enable_facial_expressions', True),
+                enable_lip_sync=config.get('enable_lip_sync', True),
+                expression_intensity=config.get('expression_intensity', 1.0),
+                progress_callback=progress_callback,
+            )
         )
 
-        # TODO: Implement final composition
-        # - Combine all person videos
-        # - Add audio track
-        # - Sync to audio beats
-        # - Render final MP4
+        # Check result
+        if result['success']:
+            final_video_url = result['video_url']
 
-        time.sleep(5)  # Mock processing
+            self.update_state(
+                state='SUCCESS',
+                meta={
+                    'step': 'Complete',
+                    'progress': 100,
+                    'logs': ['Video generation complete!'],
+                    'final_video_url': final_video_url
+                }
+            )
 
-        # ================================================================
-        # DONE
-        # ================================================================
-        final_video_url = f"minio://dance-videos/{project_id}_final.mp4"
+            logger.info(f"Generation complete for project {project_id}")
 
-        self.update_state(
-            state='SUCCESS',
-            meta={
-                'step': 'Complete',
-                'progress': 100,
-                'logs': ['Video generation complete!'],
-                'final_video_url': final_video_url
+            return {
+                'status': 'completed',
+                'final_video_url': final_video_url,
+                'metadata': result.get('metadata', {})
             }
-        )
-
-        logger.info(f"Generation complete for project {project_id}")
-
-        return {
-            'status': 'completed',
-            'final_video_url': final_video_url
-        }
+        else:
+            raise Exception(result.get('error', 'Unknown error'))
 
     except Exception as e:
         logger.error(f"Error generating video: {e}", exc_info=True)
