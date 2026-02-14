@@ -1,0 +1,220 @@
+# ============================================================================
+# DANCE VIDEO GENERATOR - PYTHON DEPENDENCIES
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# CORE WEB FRAMEWORK
+# ----------------------------------------------------------------------------
+fastapi==0.111.0
+uvicorn[standard]==0.30.0
+python-multipart==0.0.9
+pydantic==2.8.2
+pydantic-settings==2.3.4
+sse-starlette==1.8.2
+
+# ----------------------------------------------------------------------------
+# DATABASE & STORAGE
+# ----------------------------------------------------------------------------
+psycopg2-binary==2.9.9
+asyncpg==0.29.0
+sqlalchemy==2.0.25
+alembic==1.13.1
+redis==5.0.1
+hiredis==2.3.2
+minio==7.2.3
+
+# ----------------------------------------------------------------------------
+# TASK QUEUE & WORKFLOW
+# ----------------------------------------------------------------------------
+celery==5.3.4
+prefect==3.0.0
+langgraph>=0.2.0                # LangGraph for agent orchestration
+langchain>=0.3.0                # LangChain for agent tools
+langchain-core>=0.3.0           # LangChain core
+
+# ----------------------------------------------------------------------------
+# AI & DEEP LEARNING - CORE
+# ----------------------------------------------------------------------------
+torch>=2.2.2
+torchvision>=0.17.0
+opencv-python>=4.9.0
+numpy<2.0,>=1.26.4
+Pillow==10.2.0
+
+# ----------------------------------------------------------------------------
+# PERSON DETECTION & SEGMENTATION
+# ----------------------------------------------------------------------------
+ultralytics>=8.0.0              # YOLOv8 for person detection
+segment-anything>=1.0           # SAM for segmentation
+
+# ----------------------------------------------------------------------------
+# POSE ESTIMATION
+# ----------------------------------------------------------------------------
+# OpenPose (via ControlNet-aux)
+controlnet-aux>=0.0.7           # Includes OpenPose, DWPose
+# Or standalone:
+# openpifpaf>=0.13.0            # Alternative pose estimation
+
+# ----------------------------------------------------------------------------
+# FACIAL EXPRESSION TRANSFER - PRIMARY MODELS
+# ----------------------------------------------------------------------------
+
+# MediaPipe for facial landmarks (468 points)
+mediapipe>=0.10.0
+
+# First Order Motion Model (FOMM)
+# Note: Install from source or use wrapper
+# git+https://github.com/AliaksandrSiarohin/first-order-model.git
+imageio>=2.33.0                 # Required by FOMM
+imageio-ffmpeg>=0.4.9           # FFmpeg backend for imageio
+scikit-image>=0.22.0            # Image processing for FOMM
+scipy>=1.12.0                   # Scientific computing
+
+# LivePortrait (2024) - Best quality portrait animation
+# git+https://github.com/KwaiVGI/LivePortrait.git
+# Dependencies:
+face-alignment>=1.4.0           # Facial landmark detection
+insightface>=0.7.3              # Face recognition/analysis
+
+# TPS (Thin Plate Spline) - Usually included in libraries above
+# Available in scikit-image.transform
+
+# Face-vid2vid (Alternative)
+# git+https://github.com/NVlabs/face-vid2vid.git
+
+# ----------------------------------------------------------------------------
+# LIP-SYNC MODELS
+# ----------------------------------------------------------------------------
+# Wav2Lip (if needed for better lip-sync)
+# git+https://github.com/Rudrabha/Wav2Lip.git
+librosa>=0.10.0                 # Audio analysis
+soundfile>=0.12.1               # Audio file I/O
+resampy>=0.4.2                  # Audio resampling
+
+# ----------------------------------------------------------------------------
+# BODY MOTION TRANSFER MODELS
+# ----------------------------------------------------------------------------
+
+# MagicAnimate
+# git+https://github.com/magic-research/magic-animate.git
+diffusers>=0.27.0               # Hugging Face Diffusers
+transformers>=4.40.0            # HuggingFace Transformers
+accelerate>=1.0.0               # Model acceleration
+
+# ControlNet for pose control
+# Already included in diffusers
+
+# ----------------------------------------------------------------------------
+# TEXT-TO-VIDEO MODELS (Sora/Kling-style Generation)
+# ----------------------------------------------------------------------------
+
+# Stable Video Diffusion
+# Model ID: stabilityai/stable-video-diffusion-img2vid-xt
+# Already uses diffusers above
+
+# AnimateDiff
+# git+https://github.com/guoyww/AnimateDiff.git
+# Uses diffusers above
+
+# Stable Diffusion XL (for background generation)
+# Model ID: stabilityai/stable-diffusion-xl-base-1.0
+# Uses diffusers above
+
+# Additional dependencies for T2V
+invisible-watermark>=0.2.0      # For SDXL watermarking
+safetensors>=0.4.0              # Safe model loading
+omegaconf>=2.3.0                # Config management
+
+# Open-Sora 2.0 (11B model - best quality)
+# git+https://github.com/hpcaitech/Open-Sora.git
+# NOTE: Open-Sora provides BETTER results than AnimateDiff/SVD
+# - Longer videos (up to 16s)
+# - Better text understanding
+# - More cinematic quality
+# Recommended for production use!
+
+# ----------------------------------------------------------------------------
+# VIDEO PROCESSING
+# ----------------------------------------------------------------------------
+ffmpeg-python>=0.2.0            # Video manipulation
+moviepy>=1.0.3                  # Video editing
+yt-dlp>=2024.1.0                # YouTube download
+
+# ----------------------------------------------------------------------------
+# EMOTION DETECTION
+# ----------------------------------------------------------------------------
+fer>=22.5.0                     # Facial Expression Recognition
+# Or use DeepFace:
+# deepface>=0.0.79
+
+# ----------------------------------------------------------------------------
+# UTILITIES
+# ----------------------------------------------------------------------------
+python-dotenv==1.0.0
+tenacity==8.2.3
+aiofiles==23.2.1
+pyyaml==6.0.1
+python-dateutil==2.8.2
+httpx==0.27.0
+aiohttp>=3.9.0
+tqdm>=4.66.0
+
+# ----------------------------------------------------------------------------
+# OBSERVABILITY
+# ----------------------------------------------------------------------------
+opentelemetry-api==1.25.0
+opentelemetry-sdk==1.25.0
+opentelemetry-instrumentation-fastapi==0.46b0
+opentelemetry-exporter-otlp==1.25.0
+prometheus-client==0.20.0
+
+# ----------------------------------------------------------------------------
+# OPTIONAL: PROPRIETARY API CLIENTS
+# ----------------------------------------------------------------------------
+# For Seedance 2.0, Replicate, etc.
+replicate>=0.22.0               # Replicate API client
+# anthropic>=0.39.0             # If using Claude for descriptions
+# openai>=1.40.0                # If using GPT for captions
+
+# ============================================================================
+# INSTALLATION NOTES
+# ============================================================================
+#
+# MODELS FROM SOURCE (Manual Installation):
+#
+# 1. First Order Motion Model:
+#    git clone https://github.com/AliaksandrSiarohin/first-order-model.git
+#    cd first-order-model
+#    pip install -e .
+#
+# 2. LivePortrait:
+#    git clone https://github.com/KwaiVGI/LivePortrait.git
+#    cd LivePortrait
+#    pip install -e .
+#
+# 3. MagicAnimate:
+#    git clone https://github.com/magic-research/magic-animate.git
+#    cd magic-animate
+#    pip install -e .
+#
+# 4. MagicDance:
+#    git clone https://github.com/Boese0601/MagicDance.git
+#    cd MagicDance
+#    pip install -e .
+#
+# DOWNLOAD PRETRAINED WEIGHTS:
+#
+# Run: python scripts/download_models.py
+#
+# Or manually download from HuggingFace:
+# - FOMM: https://huggingface.co/first-order-model/vox-256
+# - LivePortrait: https://huggingface.co/KwaiVGI/LivePortrait
+# - MagicAnimate: https://huggingface.co/zcxu-eric/MagicAnimate
+# - MagicDance: https://huggingface.co/boese0601/MagicDance
+#
+# GPU REQUIREMENTS:
+# - NVIDIA GPU with CUDA 11.8+
+# - 8GB+ VRAM for inference
+# - 16GB+ VRAM recommended for batch processing
+#
+# ============================================================================
