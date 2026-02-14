@@ -209,7 +209,7 @@ export default function HomePage() {
 
             {/* Navigation Menu */}
             <nav className="flex items-center gap-2">
-              <button className="flex items-center gap-2 px-4 py-2 bg-green-600 text-gray-800 rounded-lg font-semibold hover:bg-green-700 transition">
+              <button className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition">
                 <Video className="w-4 h-4" />
                 Dance Generator
               </button>
@@ -236,7 +236,7 @@ export default function HomePage() {
               <div
                 className={`
                   w-10 h-10 rounded-full flex items-center justify-center font-bold
-                  ${step >= s ? 'bg-green-600 text-gray-800' : 'bg-gray-200 text-gray-500'}
+                  ${step >= s ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-500'}
                 `}
               >
                 {s}
@@ -267,8 +267,8 @@ export default function HomePage() {
                   onClick={() => setPhotoType('solo')}
                   className={`flex-1 py-4 px-6 rounded-xl font-semibold transition ${
                     photoType === 'solo'
-                      ? 'bg-green-600 text-gray-800'
-                      : 'bg-white/10 text-gray-600 hover:bg-white/20'
+                      ? 'bg-green-600 text-white'
+                      : 'bg-green-50 text-gray-700 hover:bg-green-100 border-2 border-green-200'
                   }`}
                 >
                   Solo Picture
@@ -277,8 +277,8 @@ export default function HomePage() {
                   onClick={() => setPhotoType('group')}
                   className={`flex-1 py-4 px-6 rounded-xl font-semibold transition ${
                     photoType === 'group'
-                      ? 'bg-green-600 text-gray-800'
-                      : 'bg-white/10 text-gray-600 hover:bg-white/20'
+                      ? 'bg-green-600 text-white'
+                      : 'bg-green-50 text-gray-700 hover:bg-green-100 border-2 border-green-200'
                   }`}
                 >
                   Group Picture
@@ -344,7 +344,7 @@ export default function HomePage() {
                   value={referenceUrl}
                   onChange={(e) => setReferenceUrl(e.target.value)}
                   placeholder="https://youtube.com/watch?v=..."
-                  className="w-full bg-white/10 border border-green-100 rounded-xl px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-600"
+                  className="w-full bg-white border border-green-100 rounded-xl px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-600"
                 />
                 <p className="text-gray-500 text-sm mt-2">
                   Paste any dance video URL from YouTube
@@ -370,7 +370,7 @@ export default function HomePage() {
               </button>
 
               {referenceData && (
-                <div className="grid grid-cols-2 gap-4 p-4 bg-black/30 rounded-xl">
+                <div className="grid grid-cols-2 gap-4 p-4 bg-green-50 border-2 border-green-100 rounded-xl">
                   <div className="text-center">
                     <p className="text-gray-500 text-sm">Dancers</p>
                     <p className="text-gray-800 text-2xl font-bold">
@@ -420,8 +420,8 @@ export default function HomePage() {
                     onClick={() => setBackgroundMode('original')}
                     className={`flex-1 py-3 px-4 rounded-xl font-semibold transition ${
                       backgroundMode === 'original'
-                        ? 'bg-green-600 text-gray-800'
-                        : 'bg-white/10 text-gray-600 hover:bg-white/20'
+                        ? 'bg-green-600 text-white'
+                        : 'bg-green-50 text-gray-700 hover:bg-green-100 border-2 border-green-200'
                     }`}
                   >
                     Keep Original
@@ -430,8 +430,8 @@ export default function HomePage() {
                     onClick={() => setBackgroundMode('generated')}
                     className={`flex-1 py-3 px-4 rounded-xl font-semibold transition ${
                       backgroundMode === 'generated'
-                        ? 'bg-green-600 text-gray-800'
-                        : 'bg-white/10 text-gray-600 hover:bg-white/20'
+                        ? 'bg-green-600 text-white'
+                        : 'bg-green-50 text-gray-700 hover:bg-green-100 border-2 border-green-200'
                     }`}
                   >
                     Generate with AI ✨
@@ -453,8 +453,8 @@ export default function HomePage() {
                           onClick={() => applyPreset(preset)}
                           className={`p-4 rounded-xl transition text-center ${
                             selectedPreset === preset.id
-                              ? 'bg-green-600 text-gray-800'
-                              : 'bg-white/10 text-gray-600 hover:bg-white/20'
+                              ? 'bg-green-600 text-white'
+                              : 'bg-green-50 text-gray-700 hover:bg-green-100 border-2 border-green-200'
                           }`}
                         >
                           <div className="text-3xl mb-2">{preset.emoji}</div>
@@ -476,7 +476,7 @@ export default function HomePage() {
                       onChange={(e) => setScenePrompt(e.target.value)}
                       placeholder="dancing in a neon-lit nightclub with holographic displays..."
                       rows={3}
-                      className="w-full bg-white/10 border border-green-100 rounded-xl px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-600"
+                      className="w-full bg-white border border-green-100 rounded-xl px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-600"
                     />
                   </div>
 
@@ -490,7 +490,7 @@ export default function HomePage() {
                       value={stylePrompt}
                       onChange={(e) => setStylePrompt(e.target.value)}
                       placeholder="cinematic, 4k, dramatic lighting..."
-                      className="w-full bg-white/10 border border-green-100 rounded-xl px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-600"
+                      className="w-full bg-white border border-green-100 rounded-xl px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-600"
                     />
                   </div>
                 </>
@@ -515,7 +515,7 @@ export default function HomePage() {
 
             <div className="space-y-6">
               {/* Enable Expressions */}
-              <label className="flex items-center justify-between p-4 bg-white/10 rounded-xl cursor-pointer hover:bg-white/20 transition">
+              <label className="flex items-center justify-between p-4 bg-green-50 border-2 border-green-100 rounded-xl cursor-pointer hover:bg-green-100 transition">
                 <div>
                   <div className="text-gray-800 font-semibold">
                     Facial Expressions
@@ -534,7 +534,7 @@ export default function HomePage() {
 
               {/* Lip Sync */}
               {enableExpressions && (
-                <label className="flex items-center justify-between p-4 bg-white/10 rounded-xl cursor-pointer hover:bg-white/20 transition">
+                <label className="flex items-center justify-between p-4 bg-green-50 border-2 border-green-100 rounded-xl cursor-pointer hover:bg-green-100 transition">
                   <div>
                     <div className="text-gray-800 font-semibold">
                       Lip-Sync
@@ -600,7 +600,7 @@ export default function HomePage() {
                     <div className="text-gray-800 font-semibold">{currentStep}</div>
                     <div className="text-gray-800 font-semibold">{progress}%</div>
                   </div>
-                  <div className="overflow-hidden h-4 mb-4 text-xs flex rounded-full bg-white/20">
+                  <div className="overflow-hidden h-4 mb-4 text-xs flex rounded-full bg-green-100">
                     <div
                       style={{ width: `${progress}%` }}
                       className="shadow-none flex flex-col text-center whitespace-nowrap text-gray-800 justify-center bg-gradient-to-r from-green-600 to-green-600 transition-all duration-500"
@@ -626,7 +626,7 @@ export default function HomePage() {
 
                 <button
                   onClick={() => window.open(finalVideoUrl, '_blank')}
-                  className="w-full bg-green-600 hover:bg-green-700 text-gray-800 font-bold py-4 px-6 rounded-xl transition flex items-center justify-center gap-2"
+                  className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-xl transition flex items-center justify-center gap-2"
                 >
                   <Download className="w-5 h-5" />
                   Download Video
@@ -642,7 +642,7 @@ export default function HomePage() {
                     setScenePrompt('');
                     setFinalVideoUrl(null);
                   }}
-                  className="w-full bg-white/10 hover:bg-white/20 text-gray-800 font-bold py-4 px-6 rounded-xl transition"
+                  className="w-full bg-green-50 hover:bg-green-100 text-gray-700 border-2 border-green-200 font-bold py-4 px-6 rounded-xl transition"
                 >
                   Create Another Video
                 </button>
