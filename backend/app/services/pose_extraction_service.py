@@ -18,9 +18,22 @@ class PoseExtractionService:
 
     def __init__(self):
         """Initialize MediaPipe Pose"""
-        self.mp_pose = mp.solutions.pose
-        self.mp_face_mesh = mp.solutions.face_mesh
-        self.mp_hands = mp.solutions.hands
+        try:
+            # Try new MediaPipe API first
+            if hasattr(mp, 'solutions'):
+                self.mp_pose = mp.solutions.pose
+                self.mp_face_mesh = mp.solutions.face_mesh
+                self.mp_hands = mp.solutions.hands
+            else:
+                # Fallback for older MediaPipe versions
+                from mediapipe.python.solutions import pose, face_mesh, hands
+                self.mp_pose = pose
+                self.mp_face_mesh = face_mesh
+                self.mp_hands = hands
+            logger.info("✅ MediaPipe initialized successfully")
+        except Exception as e:
+            logger.error(f"Failed to initialize MediaPipe: {e}")
+            raise
 
     def extract_poses_from_video(
         self,
